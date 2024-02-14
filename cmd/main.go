@@ -18,10 +18,11 @@ func main() {
 	flag.StringVar(&authOverwrite, "auth", "", "Token used to authenticate to GitHub, overwrites json configuration")
 	flag.StringVar(&authOverwrite, "a", "", "")
 	flag.Usage = func() {
-		fmt.Print(`Usage of shipper:
-	  -c, --config  path to configuation yaml
-	  -h, --help    display this help message
-	`)
+		fmt.Print(`Usage of shipper: gh-we [-c | --config <path>] [-a | --auth <string>]
+	-c, --config  path to configuation json file
+	-a, --auth    github Token used for authentication. Overwrites json configurations.
+	-h, --help    display this help message
+`)
 	}
 	flag.Parse()
 
@@ -47,10 +48,4 @@ func main() {
 		fmt.Println(v.ID, v.Name, v.Title)
 	}
 	fmt.Println(len(runs))
-
-	//err = api.DeleteAPI(7834160683)
-	//err = api.DeleteAPI(3)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 }
