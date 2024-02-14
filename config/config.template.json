@@ -1,0 +1,6 @@
+{
+	"owner": "OWNER",
+	"name": "REPO",
+	"auth": "token",
+	"githubApiVersion": "2022-11-28"
+}
