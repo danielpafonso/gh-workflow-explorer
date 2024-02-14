@@ -1,5 +1,33 @@
 # Github Worflow Explorer
 
-```json
-{"message": "Not Found", "documentation_url": "https://docs.github.com/rest/actions/workflow-runs#list-workflow-runs-for-a-repository"}
+A graphical Terminal application that enables the listing, filtering and deletion of Github's Repos Workflow runs.
+
+## Usage
+
 ```
+Usage of shipper: gh-we [-c | --config <path>] [-a | --auth <string>]
+        -c, --config  path to configuation json file
+        -a, --auth    github Token used for authentication. Overwrites json configurations.
+        -h, --help    display this help message
+```
+
+## Configuration
+
+By default the gh-we search for a `config.json` file in the same folder that invoke the application.
+These json have the following structure:
+
+```json
+{
+	"owner": "OWNER",
+	"name": "REPO",
+	"auth": "token",
+	"githubApiVersion": "2022-11-28"
+}
+```
+
+| Field | Description |
+| --- | --- |
+| owner | Repo's owner. Either is a user or organization |
+| name | Repo's name |
+| auth | Token to use as the bearer authentication |
+| githubApiVersion | GitHub API Versions |
