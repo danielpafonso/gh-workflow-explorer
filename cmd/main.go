@@ -40,12 +40,17 @@ func main() {
 		Auth:    fmt.Sprintf("Bearer %s", configs.Auth),
 		Version: configs.GithubApiVersion,
 	}
-	runs, err := api.ListWorkflows()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, v := range runs {
-		fmt.Println(v.ID, v.Name, v.Title)
-	}
-	fmt.Println(len(runs))
+	// runs, err := api.ListWorkflows()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// for _, v := range runs {
+	// 	fmt.Println(v.ID, v.Name, v.Title)
+	// }
+	// fmt.Println(len(runs))
+
+	appUI := internal.NewAppUI(api)
+
+	// start graphical interface
+	appUI.StartUI()
 }
