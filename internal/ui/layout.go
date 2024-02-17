@@ -21,8 +21,10 @@ func (app *App) StatusView(text string) {
 			lines[i] = fmt.Sprintf("%s%s", strings.Repeat(" ", padding), line)
 		}
 		// create view
-		maxX, maxY := app.gui.Size()
-		if view, err := app.gui.SetView("status", maxX/2-xSize/2, maxY/2, maxX/2+xSize/2, maxY/2+ySize, 0); err != nil {
+		maxX, _ := app.gui.Size()
+		// maxX, maxY := app.gui.Size()
+		//if view, err := app.gui.SetView("status", maxX/2-xSize/2, maxY/2, maxX/2+xSize/2, maxY/2+ySize, 0); err != nil {
+		if view, err := app.gui.SetView("status", maxX-xSize, 5, maxX, 5+ySize, 0); err != nil {
 			if !errors.Is(err, gocui.ErrUnknownView) {
 				return err
 			}
@@ -38,12 +40,19 @@ func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 		_, cy := v.Cursor()
 		_, oy := v.Origin()
 		cMove := cy + dy
-
+		overflow := true
+		// check if lines overflow
+		if len(app.runs) < size {
+			overflow = false
+			size = len(app.runs)
+		}
 		if dy < 0 {
 			// scroll up
 			if cy+dy < 0 {
 				// jump to end
-				v.SetOrigin(0, v.LinesHeight()-size-1)
+				if overflow {
+					v.SetOrigin(0, v.LinesHeight()-size-1)
+				}
 				cMove = size - 1
 			} else if cy+dy < 2 {
 				if oy+dy >= 0 {
@@ -55,7 +64,9 @@ func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 			// scroll down
 			if cy+dy == size {
 				// jump to start
-				v.SetOrigin(0, 0)
+				if overflow {
+					v.SetOrigin(0, 0)
+				}
 				cMove = 0
 			} else if cy+dy >= size-2 {
 				if oy+dy < v.LinesHeight()-size {
@@ -69,19 +80,6 @@ func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 		// move cursor
 		v.SetCursor(0, cMove)
 	}
-	return nil
-}
-
-func (app *App) debug(g *gocui.Gui, v *gocui.View) error {
-	_ = g.DeleteView("status")
-	cx, cy := v.Cursor()
-	ox, oy := v.Origin()
-	_, size := v.Size()
-	app.StatusView(fmt.Sprintf(
-		"cx:%d, cy:%d\nox:%d, oy:%d\nl:%d, s:%d",
-		cx, cy, ox, oy, v.LinesHeight(), size,
-	))
-	//	app.StatusView(fmt.Sprint(v.LinesHeight()))
 	return nil
 }
 

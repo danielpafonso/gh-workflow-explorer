@@ -138,21 +138,21 @@ func (app *App) refreshWorkflows() error {
 	// if err != nil {
 	// 	return err
 	// }
-	workflowsRuns := make([]internal.WorkflowRun, 30)
-	for i := range 30 {
+	workflowsRuns := make([]internal.WorkflowRun, 20)
+	for i := range workflowsRuns {
 		workflowsRuns[i] = internal.WorkflowRun{
 			Name:       fmt.Sprintf("NAME  %d  NAME", i),
 			Title:      "Some title to fill space",
 			Conclusion: "done",
 		}
 	}
-	for _, workflowRun := range workflowsRuns {
+	for i, workflowRun := range workflowsRuns {
 		// calculates columns size
 		app.columns[0].spaces = maxInts(app.columns[0].spaces, utf8.RuneCountInString(workflowRun.Name))
 		app.columns[1].spaces = maxInts(app.columns[1].spaces, utf8.RuneCountInString(workflowRun.Title))
 		app.columns[2].spaces = maxInts(app.columns[2].spaces, utf8.RuneCountInString(workflowRun.Conclusion))
 		app.runs = append(app.runs, workflows{
-			line:   0,
+			line:   i,
 			show:   true,
 			toogle: false,
 			run:    workflowRun,
