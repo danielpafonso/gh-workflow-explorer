@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github-workflow-explorer/internal"
+	"github-workflow-explorer/internal/ui"
 )
 
 func main() {
@@ -49,8 +50,11 @@ func main() {
 	// }
 	// fmt.Println(len(runs))
 
-	appUI := internal.NewAppUI(api)
+	appUI := ui.NewAppUI(api)
 
 	// start graphical interface
-	appUI.StartUI()
+	err = appUI.StartUI()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

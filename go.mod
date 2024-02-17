@@ -1,6 +1,6 @@
 module github-workflow-explorer
 
-go 1.20
+go 1.22
 
 require github.com/awesome-gocui/gocui v1.1.0
 

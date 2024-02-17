@@ -86,7 +86,6 @@ func (gh *GithubApi) ListWorkflows() ([]WorkflowRun, error) {
 			gh.Repo,
 			page,
 		)
-		fmt.Println(url)
 		code, data := gh.apiCall("GET", url, true)
 		// check for error code
 		if code != 200 {
