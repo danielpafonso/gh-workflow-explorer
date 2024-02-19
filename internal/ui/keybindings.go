@@ -7,10 +7,6 @@ import (
 	"github.com/awesome-gocui/gocui"
 )
 
-func quit(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrQuit
-}
-
 func clearDebug(g *gocui.Gui, v *gocui.View) error {
 	_ = g.DeleteView("status")
 	return nil
@@ -32,18 +28,15 @@ func (app *App) toogleMain(g *gocui.Gui, v *gocui.View) error {
 			break
 		}
 	}
+	_ = writeTootle
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
-		v.SetCursor(xPosition, cy)
+		v.SetCursor(xPosition, cy+oy)
 		v.EditDelete(false)
 		v.EditWrite(writeTootle)
+		// reset position, why? don't know..
+		v.SetCursor(xPosition, cy)
 		return nil
 	})
-	_ = g.DeleteView("status")
-	debug := make([]string, 0)
-	for _, w := range app.runs {
-		debug = append(debug, fmt.Sprint(w.toogle))
-	}
-	app.StatusView(strings.Join(debug, "\n"))
 	return nil
 }
 
@@ -59,6 +52,12 @@ func (app *App) debug(g *gocui.Gui, v *gocui.View) error {
 
 	g.DeleteView("status")
 	app.StatusView(strings.Join(runs, "\n"))
+	return nil
+}
+
+func (app *App) refreshMain(g *gocui.Gui, v *gocui.View) error {
+	app.WriteMain()
+
 	return nil
 }
 
@@ -93,7 +92,7 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'd', gocui.ModNone, app.debug); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'r', gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("", 'r', gocui.ModNone, app.refreshMain); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("", 'f', gocui.ModNone, clearDebug); err != nil {
