@@ -7,11 +7,6 @@ import (
 	"github.com/awesome-gocui/gocui"
 )
 
-func clearDebug(g *gocui.Gui, v *gocui.View) error {
-	_ = g.DeleteView("status")
-	return nil
-}
-
 func (app *App) toogleMain(g *gocui.Gui, v *gocui.View) error {
 	xPosition := 3
 	_, cy := v.Cursor()
@@ -61,6 +56,28 @@ func (app *App) refreshMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
+	runsToDelete := make([]int, 0)
+	for i := 0; i < len(app.runs); i++ {
+		if app.runs[i].toogle {
+			// add to delete
+			runsToDelete = append(runsToDelete, app.runs[i].run.ID)
+			// remove from runs array
+			app.runs = append(app.runs[:i], app.runs[i+1:]...)
+			i--
+		}
+	}
+	// delete runs
+	for _, id := range runsToDelete {
+		app.api.DeleteWorkflow(id)
+		// _ = id
+		// time.Sleep(1000 * time.Millisecond)
+	}
+	// update Main view
+	app.WriteMain()
+	return nil
+}
+
 func (app *App) keybindings(g *gocui.Gui) error {
 	// inline function: exit
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
@@ -89,13 +106,13 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", gocui.KeySpace, gocui.ModNone, app.toogleMain); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'd', gocui.ModNone, app.debug); err != nil {
+	if err := g.SetKeybinding("", 'd', gocui.ModNone, app.deleteRuns); err != nil {
 		return err
 	}
 	if err := g.SetKeybinding("", 'r', gocui.ModNone, app.refreshMain); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'f', gocui.ModNone, clearDebug); err != nil {
+	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
 		return err
 	}
 	return nil
