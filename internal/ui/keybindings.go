@@ -70,9 +70,10 @@ func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
 	}
 	go func() {
 		// delete runs
-		for _, id := range runsToDelete {
+		for i, id := range runsToDelete {
 			//app.api.DeleteWorkflow(id)
-			app.setStatus(fmt.Sprintf("Delete workruns\nDelete %d run", id))
+			_ = id
+			app.setStatus(fmt.Sprintf("Delete workruns: \n  %d/%d", i+1, len(runsToDelete)))
 			time.Sleep(1000 * time.Millisecond)
 		}
 		// update Main view
