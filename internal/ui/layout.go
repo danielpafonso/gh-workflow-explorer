@@ -8,32 +8,6 @@ import (
 	"github.com/awesome-gocui/gocui"
 )
 
-func (app *App) StatusView(text string) {
-	app.gui.UpdateAsync(func(g *gocui.Gui) error {
-		padding := 2
-		// calculate view Size
-		lines := strings.Split(text, "\n")
-		ySize := len(lines) + 1
-		xSize := 0
-		for i, line := range lines {
-			xSize = maxInts(xSize, len(line)+padding*2)
-			// add padding
-			lines[i] = fmt.Sprintf("%s%s", strings.Repeat(" ", padding), line)
-		}
-		// create view
-		maxX, _ := app.gui.Size()
-		// maxX, maxY := app.gui.Size()
-		//if view, err := app.gui.SetView("status", maxX/2-xSize/2, maxY/2, maxX/2+xSize/2, maxY/2+ySize, 0); err != nil {
-		if view, err := app.gui.SetView("status", maxX-xSize, 5, maxX, 5+ySize, 0); err != nil {
-			if !errors.Is(err, gocui.ErrUnknownView) {
-				return err
-			}
-			fmt.Fprintln(view, strings.Join(lines, "\n"))
-		}
-		return nil
-	})
-}
-
 func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 	if v != nil {
 		_, size := v.Size()
@@ -83,6 +57,32 @@ func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 	return nil
 }
 
+func (app *App) setStatus(status string) error {
+	// Calculate size
+	maxX, maxY := app.gui.Size()
+	lines := strings.Split(status, "\n")
+	auxY := len(lines)
+	app.statusPos.y0 = maxY/2 - auxY/2
+	app.statusPos.y1 = app.statusPos.y0 + auxY + 1
+	auxX := 0
+	for _, v := range lines {
+		auxX = maxInts(auxX, len(v))
+	}
+	app.statusPos.x0 = maxX/2 - auxX/2
+	app.statusPos.x1 = app.statusPos.x0 + auxX + 1
+
+	// update view
+	app.gui.UpdateAsync(func(g *gocui.Gui) error {
+		app.statusView.Clear()
+		app.statusView.Visible = true
+		fmt.Fprint(app.statusView, status)
+
+		return nil
+	})
+
+	return nil
+}
+
 func (app *App) layout(*gocui.Gui) error {
 	maxX, maxY := app.gui.Size()
 	// repo view
@@ -126,6 +126,14 @@ func (app *App) layout(*gocui.Gui) error {
 		helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <f> filter    <d> delete    <r> refresh"
 		view.SetWritePos(maxX/2-len(helpLine)/2, 0)
 		view.WriteString(helpLine)
+	}
+	// status view
+	if view, err := app.gui.SetView("statusWindow", app.statusPos.x0, app.statusPos.y0, app.statusPos.x1, app.statusPos.y1, 0); err != nil {
+		if !errors.Is(err, gocui.ErrUnknownView) {
+			return err
+		}
+		view.Visible = app.statusVisible
+		app.statusView = view
 	}
 	return nil
 }

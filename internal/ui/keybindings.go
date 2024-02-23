@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/awesome-gocui/gocui"
 )
@@ -45,8 +46,8 @@ func (app *App) debug(g *gocui.Gui, v *gocui.View) error {
 	runs = append(runs, fmt.Sprint(cy))
 	runs = append(runs, fmt.Sprint(oy))
 
-	g.DeleteView("status")
-	app.StatusView(strings.Join(runs, "\n"))
+	app.setStatus(strings.Join(runs, "\n"))
+
 	return nil
 }
 
@@ -67,14 +68,16 @@ func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
 			i--
 		}
 	}
-	// delete runs
-	for _, id := range runsToDelete {
-		app.api.DeleteWorkflow(id)
-		// _ = id
-		// time.Sleep(1000 * time.Millisecond)
-	}
-	// update Main view
-	app.WriteMain()
+	go func() {
+		// delete runs
+		for _, id := range runsToDelete {
+			//app.api.DeleteWorkflow(id)
+			app.setStatus(fmt.Sprintf("Delete workruns\nDelete %d run", id))
+			time.Sleep(1000 * time.Millisecond)
+		}
+		// update Main view
+		app.WriteMain()
+	}()
 	return nil
 }
 
@@ -115,5 +118,13 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("", 't', gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		app.statusView.Visible = !app.statusView.Visible
+		fmt.Fprint(app.statusView, "a")
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }

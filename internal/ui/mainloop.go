@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github-workflow-explorer/internal"
@@ -25,16 +26,26 @@ type columnsTable struct {
 	spaces int
 }
 
+type viewPosition struct {
+	x0 int
+	y0 int
+	x1 int
+	y1 int
+}
+
 // App creates UI and run workflow explorer
 type App struct {
-	api         internal.GithubApi
-	gui         *gocui.Gui
-	repoView    *gocui.View
-	filterView  *gocui.View
-	columnsView *gocui.View
-	columns     []columnsTable
-	mainView    *gocui.View
-	runs        []workflows
+	api           internal.GithubApi
+	gui           *gocui.Gui
+	repoView      *gocui.View
+	filterView    *gocui.View
+	columnsView   *gocui.View
+	statusView    *gocui.View
+	statusPos     viewPosition
+	statusVisible bool
+	columns       []columnsTable
+	mainView      *gocui.View
+	runs          []workflows
 }
 
 func NewAppUI(config internal.GithubApi) *App {
@@ -46,6 +57,13 @@ func NewAppUI(config internal.GithubApi) *App {
 			{2, "Status", 6},
 		},
 		runs: make([]workflows, 0),
+		statusPos: viewPosition{
+			x0: 0,
+			x1: 0,
+			y0: 1,
+			y1: 1,
+		},
+		statusVisible: false,
 	}
 }
 
@@ -57,14 +75,16 @@ func maxInts(x, y int) int {
 }
 
 func (app *App) WriteRepoOnwer() {
-	app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	// app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	app.gui.Update(func(g *gocui.Gui) error {
 		fmt.Fprintf(app.repoView, "Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
 		return nil
 	})
 }
 
 func (app *App) WriteFilter() {
-	app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	// app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	app.gui.Update(func(g *gocui.Gui) error {
 		// change this writing
 		fmt.Fprintf(app.filterView, "Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
 		return nil
@@ -72,7 +92,8 @@ func (app *App) WriteFilter() {
 }
 
 func (app *App) WriteColumns() {
-	app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	// app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	app.gui.Update(func(g *gocui.Gui) error {
 		// clear view
 		app.columnsView.Clear()
 
@@ -92,9 +113,10 @@ func (app *App) WriteColumns() {
 }
 
 func (app *App) WriteMain() {
-	app.gui.UpdateAsync(func(g *gocui.Gui) error {
-		// delete loading window
-		_ = app.gui.DeleteView("status")
+	// app.gui.UpdateAsync(func(g *gocui.Gui) error {
+	app.gui.Update(func(g *gocui.Gui) error {
+		// hide status window
+		app.statusView.Visible = false
 
 		// clear view
 		cx, cy := app.mainView.Cursor()
@@ -104,9 +126,9 @@ func (app *App) WriteMain() {
 		// write lines
 		// assuming one line por item, change this when smart print
 		for i, run := range app.runs {
+			// update line
+			app.runs[i].line = i
 			if run.show {
-				// update line
-				run.line = i
 				// write line
 				toogle := " "
 				if run.toogle {
@@ -114,7 +136,7 @@ func (app *App) WriteMain() {
 				}
 				fmt.Fprintf(
 					app.mainView,
-					"  [%s] %s%s   %s%s   %s%d\n",
+					"  [%s] %s%s   %s%s   %s%d %d\n",
 					toogle,
 					run.run.Name,
 					strings.Repeat(" ", app.columns[0].spaces-utf8.RuneCountInString(run.run.Name)),
@@ -122,10 +144,9 @@ func (app *App) WriteMain() {
 					strings.Repeat(" ", app.columns[1].spaces-utf8.RuneCountInString(run.run.Title)),
 					run.run.Conclusion,
 					i,
+					run.run.ID,
 				)
 			}
-			// update line
-			run.line = i
 		}
 		app.mainView.SetCursor(cx, cy)
 		app.mainView.SetOrigin(ox, oy)
@@ -144,6 +165,7 @@ func (app *App) refreshWorkflows() error {
 			Name:       fmt.Sprintf("NAME  %d  NAME", i),
 			Title:      "Some title to fill space",
 			Conclusion: "done",
+			ID:         i + 1,
 		}
 	}
 	for i, workflowRun := range workflowsRuns {
@@ -180,9 +202,12 @@ func (app *App) StartUI() error {
 	// write dynamic text
 	app.WriteRepoOnwer()
 	app.WriteFilter()
-	app.StatusView("Requesting workflows\nPlease Wait...")
+	// app.StatusView("Requesting workflows\nPlease Wait...")
+	app.setStatus("Requesting workflows\nPlease Wait...")
 
 	go func() {
+		time.Sleep(time.Second * 1)
+		// app.statusView.Visible = false
 		// get workflow list
 		app.refreshWorkflows()
 
