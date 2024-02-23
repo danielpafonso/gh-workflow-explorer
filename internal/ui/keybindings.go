@@ -73,7 +73,10 @@ func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
 		for i, id := range runsToDelete {
 			//app.api.DeleteWorkflow(id)
 			_ = id
-			app.setStatus(fmt.Sprintf("Delete workruns: \n  %d/%d", i+1, len(runsToDelete)))
+			// calculate loading bar
+			bar := (15 / len(runsToDelete)) * i
+			app.setStatus(fmt.Sprintf(" Delete workruns:  \n [%s%s]", strings.Repeat("=", bar), strings.Repeat(" ", 15-bar)))
+			app.statusView.Subtitle = fmt.Sprintf("%d/%d", i+1, len(runsToDelete))
 			time.Sleep(1000 * time.Millisecond)
 		}
 		// update Main view
