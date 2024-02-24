@@ -122,13 +122,6 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 't', gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
-		app.statusView.Visible = !app.statusView.Visible
-		fmt.Fprint(app.statusView, "a")
-		return nil
-	}); err != nil {
-		return err
-	}
 
 	return nil
 }
