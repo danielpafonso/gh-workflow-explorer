@@ -114,8 +114,8 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'r', gocui.ModNone, app.refreshMain); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
-		return err
-	}
+	// if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
+	// 	return err
+	// }
 	return nil
 }

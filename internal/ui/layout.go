@@ -123,7 +123,8 @@ func (app *App) layout(*gocui.Gui) error {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
-		helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <f> filter    <d> delete    <r> refresh"
+		// helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <f> filter    <d> delete    <r> refresh"
+		helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <d> delete    <r> refresh"
 		view.SetWritePos(maxX/2-len(helpLine)/2, 0)
 		view.WriteString(helpLine)
 	}
