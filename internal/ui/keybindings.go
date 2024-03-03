@@ -45,7 +45,6 @@ func (app *App) debug(g *gocui.Gui, v *gocui.View) error {
 	runs = append(runs, fmt.Sprint(cy))
 	runs = append(runs, fmt.Sprint(oy))
 
-	g.DeleteView("status")
 	app.StatusView(strings.Join(runs, "\n"))
 	return nil
 }
@@ -68,13 +67,16 @@ func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
 		}
 	}
 	// delete runs
-	for _, id := range runsToDelete {
-		app.api.DeleteWorkflow(id)
-		// _ = id
-		// time.Sleep(1000 * time.Millisecond)
-	}
-	// update Main view
-	app.WriteMain()
+	go func() {
+		for i, id := range runsToDelete {
+			fill := int((float32(i) / float32(len(runsToDelete))) * 15)
+			app.StatusView(fmt.Sprintf("Deleting Workruns: \n [%s%s]", strings.Repeat("=", fill), strings.Repeat(" ", 15-fill)))
+			app.statusView.Subtitle = fmt.Sprintf("%d/%d", i+1, len(runsToDelete))
+			app.api.DeleteWorkflow(id)
+		}
+		// update Main view
+		app.WriteMain()
+	}()
 	return nil
 }
 

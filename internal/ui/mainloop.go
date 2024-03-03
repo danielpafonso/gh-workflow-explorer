@@ -27,14 +27,20 @@ type columnsTable struct {
 
 // App creates UI and run workflow explorer
 type App struct {
-	api         internal.GithubApi
-	gui         *gocui.Gui
-	repoView    *gocui.View
-	filterView  *gocui.View
-	columnsView *gocui.View
-	columns     []columnsTable
-	mainView    *gocui.View
-	runs        []workflows
+	api           internal.GithubApi
+	gui           *gocui.Gui
+	repoView      *gocui.View
+	filterView    *gocui.View
+	columnsView   *gocui.View
+	columns       []columnsTable
+	mainView      *gocui.View
+	statusView    *gocui.View
+	statusVisible bool
+	statusX0      int
+	statusY0      int
+	statusX1      int
+	statusY1      int
+	runs          []workflows
 }
 
 func NewAppUI(config internal.GithubApi) *App {
@@ -45,7 +51,10 @@ func NewAppUI(config internal.GithubApi) *App {
 			{1, "Commit Name", 11},
 			{2, "Status", 6},
 		},
-		runs: make([]workflows, 0),
+		statusVisible: true,
+		statusX1:      2,
+		statusY1:      2,
+		runs:          make([]workflows, 0),
 	}
 }
 
@@ -58,7 +67,7 @@ func maxInts(x, y int) int {
 
 func (app *App) WriteRepoOnwer() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
-		fmt.Fprintf(app.repoView, "Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
+		fmt.Fprintf(app.repoView, " Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
 		return nil
 	})
 }
@@ -94,7 +103,8 @@ func (app *App) WriteColumns() {
 func (app *App) WriteMain() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		// delete loading window
-		_ = app.gui.DeleteView("status")
+		app.statusVisible = false
+		// _ = app.gui.DeleteView("status")
 
 		// clear view
 		cx, cy := app.mainView.Cursor()
@@ -104,9 +114,9 @@ func (app *App) WriteMain() {
 		// write lines
 		// assuming one line por item, change this when smart print
 		for i, run := range app.runs {
+			// update line
+			app.runs[i].line = i
 			if run.show {
-				// update line
-				run.line = i
 				// write line
 				toogle := " "
 				if run.toogle {
@@ -114,38 +124,36 @@ func (app *App) WriteMain() {
 				}
 				fmt.Fprintf(
 					app.mainView,
-					"  [%s] %s%s   %s%s   %s%d\n",
+					"  [%s] %s%s   %s%s   %s\n",
 					toogle,
 					run.run.Name,
 					strings.Repeat(" ", app.columns[0].spaces-utf8.RuneCountInString(run.run.Name)),
 					run.run.Title,
 					strings.Repeat(" ", app.columns[1].spaces-utf8.RuneCountInString(run.run.Title)),
 					run.run.Conclusion,
-					i,
 				)
 			}
-			// update line
-			run.line = i
 		}
 		app.mainView.SetCursor(cx, cy)
 		app.mainView.SetOrigin(ox, oy)
+		app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, len(app.runs))
 		return nil
 	})
 }
 
 func (app *App) refreshWorkflows() error {
-	// workflowsRuns, err := app.api.ListWorkflows()
-	// if err != nil {
-	// 	return err
-	// }
-	workflowsRuns := make([]internal.WorkflowRun, 20)
-	for i := range workflowsRuns {
-		workflowsRuns[i] = internal.WorkflowRun{
-			Name:       fmt.Sprintf("NAME  %d  NAME", i),
-			Title:      "Some title to fill space",
-			Conclusion: "done",
-		}
+	workflowsRuns, err := app.api.ListWorkflows()
+	if err != nil {
+		return err
 	}
+	// workflowsRuns := make([]internal.WorkflowRun, 20)
+	// for i := range workflowsRuns {
+	// 	workflowsRuns[i] = internal.WorkflowRun{
+	// 		Name:       fmt.Sprintf("NAME  %d  NAME", i),
+	// 		Title:      "Some title to fill space",
+	// 		Conclusion: "done",
+	// 	}
+	// }
 	for i, workflowRun := range workflowsRuns {
 		// calculates columns size
 		app.columns[0].spaces = maxInts(app.columns[0].spaces, utf8.RuneCountInString(workflowRun.Name))
@@ -179,7 +187,7 @@ func (app *App) StartUI() error {
 
 	// write dynamic text
 	app.WriteRepoOnwer()
-	app.WriteFilter()
+	// app.WriteFilter()
 	app.StatusView("Requesting workflows\nPlease Wait...")
 
 	go func() {

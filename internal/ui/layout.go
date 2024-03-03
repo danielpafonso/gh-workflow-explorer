@@ -20,16 +20,14 @@ func (app *App) StatusView(text string) {
 			// add padding
 			lines[i] = fmt.Sprintf("%s%s", strings.Repeat(" ", padding), line)
 		}
-		// create view
-		maxX, _ := app.gui.Size()
-		// maxX, maxY := app.gui.Size()
-		//if view, err := app.gui.SetView("status", maxX/2-xSize/2, maxY/2, maxX/2+xSize/2, maxY/2+ySize, 0); err != nil {
-		if view, err := app.gui.SetView("status", maxX-xSize, 5, maxX, 5+ySize, 0); err != nil {
-			if !errors.Is(err, gocui.ErrUnknownView) {
-				return err
-			}
-			fmt.Fprintln(view, strings.Join(lines, "\n"))
-		}
+		maxX, maxY := app.gui.Size()
+		app.statusX0 = maxX/2 - xSize/2
+		app.statusY0 = maxY/2 - ySize/2
+		app.statusX1 = app.statusX0 + xSize
+		app.statusY1 = app.statusY0 + ySize
+		app.statusVisible = true
+		app.statusView.Clear()
+		fmt.Fprint(app.statusView, strings.Join(lines, "\n"))
 		return nil
 	})
 }
@@ -79,6 +77,8 @@ func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 		}
 		// move cursor
 		v.SetCursor(0, cMove)
+		_, oy = v.Origin()
+		v.Subtitle = fmt.Sprintf("%d/%d", cMove+oy+1, v.LinesHeight()-1)
 	}
 	return nil
 }
@@ -126,6 +126,16 @@ func (app *App) layout(*gocui.Gui) error {
 		helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <f> filter    <d> delete    <r> refresh"
 		view.SetWritePos(maxX/2-len(helpLine)/2, 0)
 		view.WriteString(helpLine)
+	}
+	// status view
+	if view, err := app.gui.SetView("status", app.statusX0, app.statusY0, app.statusX1, app.statusY1, 0); err != nil {
+		if !errors.Is(err, gocui.ErrUnknownView) {
+			return err
+		}
+		view.Visible = app.statusVisible
+		app.statusView = view
+	} else {
+		view.Visible = app.statusVisible
 	}
 	return nil
 }
