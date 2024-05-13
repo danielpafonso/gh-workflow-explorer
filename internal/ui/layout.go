@@ -58,6 +58,8 @@ func (app *App) FilterWindow(text string) {
 }
 
 func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
+	// disable warning
+	_ = g
 	if v != nil {
 		_, size := v.Size()
 		_, cy := v.Cursor()
