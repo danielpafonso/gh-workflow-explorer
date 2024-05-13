@@ -23,7 +23,6 @@ func (app *App) toogleMain(g *gocui.Gui, v *gocui.View) error {
 			break
 		}
 	}
-	_ = writeTootle
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		v.SetCursor(xPosition, cy+oy)
 		v.EditDelete(false)
@@ -32,6 +31,28 @@ func (app *App) toogleMain(g *gocui.Gui, v *gocui.View) error {
 		v.SetCursor(xPosition, cy)
 		return nil
 	})
+	return nil
+}
+
+func (app *App) toogleAllMain(g *gocui.Gui, v *gocui.View) error {
+	toSelect := make([]int, 0)
+	for i := range app.runs {
+		if !app.runs[i].toogle {
+			toSelect = append(toSelect, i)
+		}
+	}
+	if len(toSelect) > 0 {
+		// selected non-selected
+		for _, i := range toSelect {
+			app.runs[i].toogle = true
+		}
+	} else {
+		// unselect all
+		for i := range app.runs {
+			app.runs[i].toogle = false
+		}
+	}
+	app.refreshMain(g, v)
 	return nil
 }
 
@@ -114,6 +135,10 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'r', gocui.ModNone, app.refreshMain); err != nil {
 		return err
 	}
+	if err := g.SetKeybinding("", 'a', gocui.ModNone, app.toogleAllMain); err != nil {
+		return err
+	}
+
 	// if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
 	// 	return err
 	// }
