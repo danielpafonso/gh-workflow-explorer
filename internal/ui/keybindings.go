@@ -34,7 +34,7 @@ func (app *App) toogleMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (app *App) toogleAllMain(g *gocui.Gui, v *gocui.View) error {
+func (app *App) toogleAllRuns(g *gocui.Gui, v *gocui.View) error {
 	toSelect := make([]int, 0)
 	for i := range app.runs {
 		if !app.runs[i].toogle {
@@ -56,17 +56,12 @@ func (app *App) toogleAllMain(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (app *App) debug(g *gocui.Gui, v *gocui.View) error {
-	runs := make([]string, 0)
-	_, cy := v.Cursor()
-	_, oy := v.Origin()
-	_, size := v.Size()
-	runs = append(runs, fmt.Sprintf("l: %d", len(app.runs)))
-	runs = append(runs, fmt.Sprintf("s: %d", size))
-	runs = append(runs, fmt.Sprint(cy))
-	runs = append(runs, fmt.Sprint(oy))
-
-	app.StatusView(strings.Join(runs, "\n"))
+func (app *App) filterRuns(g *gocui.Gui, v *gocui.View) error {
+	// toogle on/off filter window
+	app.filterVisible = !app.filterVisible
+	data := fmt.Sprintf("name:\nvisible: %v\nOK   Cancel", app.filterVisible)
+	app.FilterWindow(data)
+	//app.StatusView(fmt.Sprintf("name:\nvisible: %v\n OK   Cancel", app.filterVisible))
 	return nil
 }
 
@@ -135,12 +130,11 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'r', gocui.ModNone, app.refreshMain); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'a', gocui.ModNone, app.toogleAllMain); err != nil {
+	if err := g.SetKeybinding("", 'a', gocui.ModNone, app.toogleAllRuns); err != nil {
 		return err
 	}
-
-	// if err := g.SetKeybinding("", 'f', gocui.ModNone, app.debug); err != nil {
-	// 	return err
-	// }
+	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.filterRuns); err != nil {
+		return err
+	}
 	return nil
 }

@@ -21,13 +21,38 @@ func (app *App) StatusView(text string) {
 			lines[i] = fmt.Sprintf("%s%s", strings.Repeat(" ", padding), line)
 		}
 		maxX, maxY := app.gui.Size()
-		app.statusX0 = maxX/2 - xSize/2
-		app.statusY0 = maxY/2 - ySize/2
-		app.statusX1 = app.statusX0 + xSize
-		app.statusY1 = app.statusY0 + ySize
+		app.status.X0 = maxX/2 - xSize/2
+		app.status.Y0 = maxY/2 - ySize/2
+		app.status.X1 = app.status.X0 + xSize
+		app.status.Y1 = app.status.Y0 + ySize
 		app.statusVisible = true
 		app.statusView.Clear()
 		fmt.Fprint(app.statusView, strings.Join(lines, "\n"))
+		return nil
+	})
+}
+
+func (app *App) FilterWindow(text string) {
+	app.gui.UpdateAsync(func(g *gocui.Gui) error {
+		padding := 2
+		if app.filterVisible {
+			lines := strings.Split(text, "\n")
+			ySize := len(lines) + 1
+			xSize := 0
+			for i, line := range lines {
+				xSize = maxInts(xSize, len(line)+padding*2)
+				// add padding
+				lines[i] = fmt.Sprintf("%s%s", strings.Repeat(" ", padding), line)
+			}
+			maxX, maxY := app.gui.Size()
+			app.filter.X0 = maxX/2 - xSize/2
+			app.filter.Y0 = maxY/2 - ySize/2
+			app.filter.X1 = app.filter.X0 + xSize
+			app.filter.Y1 = app.filter.Y0 + ySize
+			app.filterVisible = true
+			app.filterView.Clear()
+			fmt.Fprint(app.filterView, strings.Join(lines, "\n"))
+		}
 		return nil
 	})
 }
@@ -94,12 +119,12 @@ func (app *App) layout(*gocui.Gui) error {
 		app.repoView = view
 	}
 	// filter view
-	if view, err := app.gui.SetView("filter", maxX/2, -1, maxX, 8, 0); err != nil {
+	if view, err := app.gui.SetView("filterlist", maxX/2, -1, maxX, 8, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
 		view.Frame = false
-		app.filterView = view
+		app.filterListView = view
 	}
 	// columns name view
 	if view, err := app.gui.SetView("column", -1, 8, maxX, 10, 0); err != nil {
@@ -123,13 +148,12 @@ func (app *App) layout(*gocui.Gui) error {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
-		// helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <a> (un)select all    <f> filter    <d> delete    <r> refresh"
-		helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <a> (un)select all    <d> delete    <r> refresh"
+		helpLine := "<q> exit    <UP/DOWN arrow> nav    <space> toogle    <a> (un)select all    <f> filter    <d> delete    <r> refresh"
 		view.SetWritePos(maxX/2-len(helpLine)/2, 0)
 		view.WriteString(helpLine)
 	}
 	// status view
-	if view, err := app.gui.SetView("status", app.statusX0, app.statusY0, app.statusX1, app.statusY1, 0); err != nil {
+	if view, err := app.gui.SetView("status", app.status.X0, app.status.Y0, app.status.X1, app.status.Y1, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
@@ -138,5 +162,16 @@ func (app *App) layout(*gocui.Gui) error {
 	} else {
 		view.Visible = app.statusVisible
 	}
+	// filter window view
+	if view, err := app.gui.SetView("filter", app.filter.X0, app.filter.Y0, app.filter.X1, app.filter.Y1, 0); err != nil {
+		if !errors.Is(err, gocui.ErrUnknownView) {
+			return err
+		}
+		view.Visible = app.filterVisible
+		app.filterView = view
+	} else {
+		view.Visible = app.filterVisible
+	}
+
 	return nil
 }
