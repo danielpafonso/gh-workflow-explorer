@@ -37,6 +37,10 @@ func (app *App) toogleMain(g *gocui.Gui, v *gocui.View) error {
 func (app *App) toogleAllMain(g *gocui.Gui, v *gocui.View) error {
 	toSelect := make([]int, 0)
 	for i := range app.runs {
+		if !app.runs[i].show {
+			// skip hidden runs
+			continue
+		}
 		if !app.runs[i].toogle {
 			toSelect = append(toSelect, i)
 		}
@@ -49,6 +53,10 @@ func (app *App) toogleAllMain(g *gocui.Gui, v *gocui.View) error {
 	} else {
 		// unselect all
 		for i := range app.runs {
+			if !app.runs[i].show {
+				// skip hidden runs
+				continue
+			}
 			app.runs[i].toogle = false
 		}
 	}
