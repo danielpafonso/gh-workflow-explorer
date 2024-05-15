@@ -154,7 +154,6 @@ func (app *App) refreshWorkflows() error {
 	if err != nil {
 		return err
 	}
-
 	for i, workflowRun := range workflowsRuns {
 		// calculates columns size
 		app.columns[0].spaces = maxInts(app.columns[0].spaces, utf8.RuneCountInString(workflowRun.Name))
