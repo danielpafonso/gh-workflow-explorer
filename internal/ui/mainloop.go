@@ -112,7 +112,6 @@ func (app *App) WriteMain() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		// delete loading window
 		app.statusVisible = false
-		// _ = app.gui.DeleteView("status")
 
 		// clear view
 		cx, cy := app.mainView.Cursor()
