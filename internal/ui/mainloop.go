@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github-workflow-explorer/internal"
@@ -32,6 +33,20 @@ type viewCoord struct {
 	Y1 int
 }
 
+type FilterFields struct {
+	Name   string
+	Commit string
+	Status string
+}
+type filterData struct {
+	view    *gocui.View
+	pos     viewCoord
+	visible bool
+	fields  FilterFields
+	inputs  []*gocui.View
+	focus   int
+}
+
 // App creates UI and run workflow explorer
 type App struct {
 	api            internal.GithubApi
@@ -44,9 +59,7 @@ type App struct {
 	statusView     *gocui.View
 	statusVisible  bool
 	status         viewCoord
-	filterView     *gocui.View
-	filterVisible  bool
-	filter         viewCoord
+	filter         filterData
 	runs           []workflows
 }
 
@@ -60,9 +73,12 @@ func NewAppUI(config internal.GithubApi) *App {
 		},
 		statusVisible: true,
 		status:        viewCoord{X1: 2, Y1: 2},
-		filterVisible: false,
-		filter:        viewCoord{X1: 1, Y1: 1},
-		runs:          make([]workflows, 0),
+		filter: filterData{
+			visible: false,
+			pos:     viewCoord{X1: 1, Y1: 1},
+			inputs:  make([]*gocui.View, 0),
+		},
+		runs: make([]workflows, 0),
 	}
 }
 
@@ -177,7 +193,8 @@ func (app *App) StartUI() error {
 	}
 	defer app.gui.Close()
 	// set graphical manager
-	app.gui.SetManagerFunc(app.layout)
+	app.gui.SetManagerFunc(app.Layout)
+	//app.gui.SetManager(app)
 
 	// set Keybings
 	if err := app.keybindings(app.gui); err != nil {
@@ -191,7 +208,8 @@ func (app *App) StartUI() error {
 
 	go func() {
 		// get workflow list
-		app.refreshWorkflows()
+		// app.refreshWorkflows()
+		time.Sleep(1 * time.Second)
 
 		app.WriteMain()
 		app.WriteColumns()

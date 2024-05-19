@@ -64,12 +64,51 @@ func (app *App) toogleAllRuns(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func (app *App) filterRuns(g *gocui.Gui, v *gocui.View) error {
-	// toogle on/off filter window
-	app.filterVisible = !app.filterVisible
-	data := fmt.Sprintf("name:\nvisible: %v\nOK   Cancel", app.filterVisible)
-	app.FilterWindow(data)
-	//app.StatusView(fmt.Sprintf("name:\nvisible: %v\n OK   Cancel", app.filterVisible))
+func (app *App) filterOpen(g *gocui.Gui, v *gocui.View) error {
+	// toogle on filter window
+	app.filter.visible = true
+	app.filter.focus = 0
+	g.SetCurrentView(app.filter.inputs[0].Name())
+	app.filter.inputs[0].BgColor = gocui.ColorCyan
+	// Add current filter?
+	return nil
+}
+
+func (app *App) filterClose(g *gocui.Gui, v *gocui.View) error {
+	v.BgColor = gocui.ColorDefault
+	for _, input := range app.filter.inputs {
+		input.Clear()
+	}
+	app.filter.visible = false
+	g.SetCurrentView(app.mainView.Name())
+	return nil
+}
+
+func (app *App) filterFocus(g *gocui.Gui, v *gocui.View) error {
+	// update current
+	v.BgColor = gocui.ColorDefault
+	tmp := v.Buffer()
+	v.Clear()
+	v.WriteString(tmp)
+	// update next
+	app.filter.focus = (app.filter.focus + 1) % len(app.filter.inputs)
+	next := app.filter.inputs[app.filter.focus]
+	g.SetCurrentView(next.Name())
+	next.BgColor = gocui.ColorCyan
+	next.MoveCursor(len(next.Buffer()), 0)
+	return nil
+}
+
+func (app *App) filterApply(g *gocui.Gui, v *gocui.View) error {
+	// update filter view
+	app.filter.fields.Name = app.filter.inputs[0].Buffer()
+	app.filter.fields.Commit = app.filter.inputs[1].Buffer()
+	app.filter.fields.Status = app.filter.inputs[2].Buffer()
+
+	// update runs list
+
+	// close
+	app.filterClose(g, v)
 	return nil
 }
 
@@ -141,8 +180,22 @@ func (app *App) keybindings(g *gocui.Gui) error {
 	if err := g.SetKeybinding("", 'a', gocui.ModNone, app.toogleAllRuns); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.filterRuns); err != nil {
+	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.filterOpen); err != nil {
 		return err
+	}
+
+	//   filter Window
+	// Add keybings to all inputs
+	for _, view := range []string{"filter-name", "filter-commit", "filter-status"} {
+		if err := g.SetKeybinding(view, gocui.KeyTab, gocui.ModNone, app.filterFocus); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding(view, gocui.KeyEsc, gocui.ModNone, app.filterClose); err != nil {
+			return err
+		}
+		if err := g.SetKeybinding(view, gocui.KeyEnter, gocui.ModNone, app.filterApply); err != nil {
+			return err
+		}
 	}
 	return nil
 }
