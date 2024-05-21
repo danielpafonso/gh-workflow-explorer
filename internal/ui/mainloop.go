@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github-workflow-explorer/internal"
@@ -208,8 +207,7 @@ func (app *App) StartUI() error {
 
 	go func() {
 		// get workflow list
-		// app.refreshWorkflows()
-		time.Sleep(1 * time.Second)
+		app.refreshWorkflows()
 
 		app.WriteMain()
 		app.WriteColumns()

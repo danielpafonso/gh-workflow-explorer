@@ -106,10 +106,24 @@ func (app *App) filterApply(g *gocui.Gui, v *gocui.View) error {
 	app.filter.fields.Status = app.filter.inputs[2].Buffer()
 
 	// update runs list
-
+	app.filterRuns()
 	// close
 	app.filterClose(g, v)
+	app.WriteMain()
 	return nil
+}
+
+// func (app *App) filterRuns(g *gocui.Gui, v *gocui.View) error {
+func (app *App) filterRuns() {
+	for i, workflow := range app.runs {
+		filter := strings.Contains(workflow.run.Name, app.filter.fields.Name) &&
+			strings.Contains(workflow.run.Title, app.filter.fields.Commit) &&
+			strings.Contains(workflow.run.Conclusion, app.filter.fields.Status)
+
+		// apply filter
+		app.runs[i].show = filter
+	}
+	// return nil
 }
 
 func (app *App) refreshMain(g *gocui.Gui, v *gocui.View) error {
