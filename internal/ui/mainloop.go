@@ -25,22 +25,41 @@ type columnsTable struct {
 	spaces int
 }
 
+type viewCoord struct {
+	X0 int
+	X1 int
+	Y0 int
+	Y1 int
+}
+
+type FilterFields struct {
+	Name   string
+	Commit string
+	Status string
+}
+type filterData struct {
+	view    *gocui.View
+	pos     viewCoord
+	visible bool
+	fields  FilterFields
+	inputs  []*gocui.View
+	focus   int
+}
+
 // App creates UI and run workflow explorer
 type App struct {
-	api           internal.GithubApi
-	gui           *gocui.Gui
-	repoView      *gocui.View
-	filterView    *gocui.View
-	columnsView   *gocui.View
-	columns       []columnsTable
-	mainView      *gocui.View
-	statusView    *gocui.View
-	statusVisible bool
-	statusX0      int
-	statusY0      int
-	statusX1      int
-	statusY1      int
-	runs          []workflows
+	api            internal.GithubApi
+	gui            *gocui.Gui
+	repoView       *gocui.View
+	filterListView *gocui.View
+	columnsView    *gocui.View
+	columns        []columnsTable
+	mainView       *gocui.View
+	statusView     *gocui.View
+	statusVisible  bool
+	status         viewCoord
+	filter         filterData
+	runs           []workflows
 }
 
 func NewAppUI(config internal.GithubApi) *App {
@@ -52,9 +71,13 @@ func NewAppUI(config internal.GithubApi) *App {
 			{2, "Status", 6},
 		},
 		statusVisible: true,
-		statusX1:      2,
-		statusY1:      2,
-		runs:          make([]workflows, 0),
+		status:        viewCoord{X1: 2, Y1: 2},
+		filter: filterData{
+			visible: false,
+			pos:     viewCoord{X1: 1, Y1: 1},
+			inputs:  make([]*gocui.View, 0),
+		},
+		runs: make([]workflows, 0),
 	}
 }
 
@@ -75,7 +98,7 @@ func (app *App) WriteRepoOnwer() {
 func (app *App) WriteFilter() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		// change this writing
-		fmt.Fprintf(app.filterView, "Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
+		fmt.Fprintf(app.filterListView, "Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
 		return nil
 	})
 }
@@ -169,7 +192,8 @@ func (app *App) StartUI() error {
 	}
 	defer app.gui.Close()
 	// set graphical manager
-	app.gui.SetManagerFunc(app.layout)
+	app.gui.SetManagerFunc(app.Layout)
+	//app.gui.SetManager(app)
 
 	// set Keybings
 	if err := app.keybindings(app.gui); err != nil {
