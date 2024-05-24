@@ -127,8 +127,22 @@ func (app *App) filterRuns() {
 }
 
 func (app *App) refreshMain(g *gocui.Gui, v *gocui.View) error {
-	app.WriteMain()
-
+	app.StatusView("Requesting workflows\nPlease Wait...")
+	go func() {
+		// clean runs
+		if len(app.runs) > 0 {
+			app.runs = []workflows{}
+		}
+		// clean filters
+		app.filter.fields.Name = ""
+		app.filter.fields.Commit = ""
+		app.filter.fields.Status = ""
+		// get data from api
+		app.refreshWorkflows()
+		// update main
+		app.WriteMain()
+		app.WriteColumns()
+	}()
 	return nil
 }
 
@@ -170,31 +184,37 @@ func (app *App) keybindings(g *gocui.Gui) error {
 		return err
 	}
 	// calling functions functions
-	if err := g.SetKeybinding("", gocui.KeyArrowUp, gocui.ModNone,
+	if err := g.SetKeybinding("main", gocui.KeyArrowUp, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			return app.scrollMain(g, v, -1)
 		}); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", gocui.KeyArrowDown, gocui.ModNone,
+	if err := g.SetKeybinding("main", gocui.KeyArrowDown, gocui.ModNone,
 		func(g *gocui.Gui, v *gocui.View) error {
 			return app.scrollMain(g, v, 1)
 		}); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", gocui.KeySpace, gocui.ModNone, app.toogleMain); err != nil {
+	if err := g.SetKeybinding("main", gocui.KeySpace, gocui.ModNone, app.toogleMain); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'd', gocui.ModNone, app.deleteRuns); err != nil {
+	if err := g.SetKeybinding("main", 'd', gocui.ModNone, app.deleteRuns); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'r', gocui.ModNone, app.refreshMain); err != nil {
+	if err := g.SetKeybinding("main", 'r', gocui.ModNone, app.refreshMain); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'a', gocui.ModNone, app.toogleAllRuns); err != nil {
+	if err := g.SetKeybinding("main", 'r', gocui.ModAlt, func(g *gocui.Gui, v *gocui.View) error {
+		app.WriteMain()
+		return nil
+	}); err != nil {
 		return err
 	}
-	if err := g.SetKeybinding("", 'f', gocui.ModNone, app.filterOpen); err != nil {
+	if err := g.SetKeybinding("main", 'a', gocui.ModNone, app.toogleAllRuns); err != nil {
+		return err
+	}
+	if err := g.SetKeybinding("main", 'f', gocui.ModNone, app.filterOpen); err != nil {
 		return err
 	}
 
