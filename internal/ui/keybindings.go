@@ -60,7 +60,7 @@ func (app *App) toogleAllRuns(g *gocui.Gui, v *gocui.View) error {
 			app.runs[i].toogle = false
 		}
 	}
-	app.refreshMain(g, v)
+	app.WriteMain()
 	return nil
 }
 
