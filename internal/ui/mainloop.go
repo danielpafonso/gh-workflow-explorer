@@ -123,14 +123,22 @@ func (app *App) WriteColumns() {
 	})
 }
 
-func (app *App) WriteMain() {
+func (app *App) WriteMain(keepPosition ...bool) {
+	// default value
+	keepPos := false
+	if len(keepPosition) > 0 {
+		keepPos = keepPosition[0]
+	}
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		// delete loading window
 		app.statusVisible = false
 
+		var cx, cy, ox, oy, runs int
 		// clear view
-		cx, cy := app.mainView.Cursor()
-		ox, oy := app.mainView.Origin()
+		if keepPos {
+			cx, cy = app.mainView.Cursor()
+			ox, oy = app.mainView.Origin()
+		}
 		app.mainView.Clear()
 
 		// write lines
@@ -139,6 +147,7 @@ func (app *App) WriteMain() {
 			// update line
 			app.runs[i].line = i
 			if run.show {
+				runs += 1
 				// write line
 				toogle := " "
 				if run.toogle {
@@ -158,7 +167,7 @@ func (app *App) WriteMain() {
 		}
 		app.mainView.SetCursor(cx, cy)
 		app.mainView.SetOrigin(ox, oy)
-		app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, len(app.runs))
+		app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, runs)
 		return nil
 	})
 }

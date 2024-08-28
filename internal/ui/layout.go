@@ -67,9 +67,17 @@ func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 		cMove := cy + dy
 		overflow := true
 		// check if lines overflow
-		if len(app.runs) < size {
+		runs := 0
+		for _, run := range app.runs {
+			if run.show {
+				runs += 1
+			}
+		}
+		//if len(app.runs) < size {
+		if runs < size {
 			overflow = false
-			size = len(app.runs)
+			//size = len(app.runs)
+			size = runs
 		}
 		if dy < 0 {
 			// scroll up
