@@ -167,7 +167,11 @@ func (app *App) WriteMain(keepPosition ...bool) {
 		}
 		app.mainView.SetCursor(cx, cy)
 		app.mainView.SetOrigin(ox, oy)
-		app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, app.showRuns)
+		if app.showRuns == 0 {
+			app.mainView.Subtitle = "0/0"
+		} else {
+			app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, app.showRuns)
+		}
 		return nil
 	})
 }

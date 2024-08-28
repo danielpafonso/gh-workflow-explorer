@@ -60,7 +60,14 @@ func (app *App) FilterWindow(text string) {
 func (app *App) scrollMain(g *gocui.Gui, v *gocui.View, dy int) error {
 	// disable warning
 	_ = g
-	if v != nil {
+
+	// disable scroll if there are no runs to show
+	if app.showRuns == 0 {
+		return nil
+	}
+
+	// view exist
+	if v != nil && app.showRuns > 0 {
 		_, size := v.Size()
 		_, cy := v.Cursor()
 		_, oy := v.Origin()
