@@ -115,6 +115,7 @@ func (app *App) filterApply(g *gocui.Gui, v *gocui.View) error {
 
 // func (app *App) filterRuns(g *gocui.Gui, v *gocui.View) error {
 func (app *App) filterRuns() {
+	app.showRuns = 0
 	for i, workflow := range app.runs {
 		filter := strings.Contains(workflow.run.Name, app.filter.fields.Name) &&
 			strings.Contains(workflow.run.Title, app.filter.fields.Commit) &&
@@ -122,6 +123,11 @@ func (app *App) filterRuns() {
 
 		// apply filter
 		app.runs[i].show = filter
+
+		// update runs to show counter
+		if filter {
+			app.showRuns += 1
+		}
 	}
 	// return nil
 }
@@ -155,6 +161,8 @@ func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
 			// remove from runs array
 			app.runs = append(app.runs[:i], app.runs[i+1:]...)
 			i--
+			// update runs to show counter
+			app.showRuns -= 1
 		}
 	}
 	// delete runs

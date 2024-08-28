@@ -59,6 +59,7 @@ type App struct {
 	statusVisible  bool
 	status         viewCoord
 	filter         filterData
+	showRuns       int
 	runs           []workflows
 }
 
@@ -133,7 +134,7 @@ func (app *App) WriteMain(keepPosition ...bool) {
 		// delete loading window
 		app.statusVisible = false
 
-		var cx, cy, ox, oy, runs int
+		var cx, cy, ox, oy int
 		// clear view
 		if keepPos {
 			cx, cy = app.mainView.Cursor()
@@ -147,7 +148,6 @@ func (app *App) WriteMain(keepPosition ...bool) {
 			// update line
 			app.runs[i].line = i
 			if run.show {
-				runs += 1
 				// write line
 				toogle := " "
 				if run.toogle {
@@ -167,7 +167,7 @@ func (app *App) WriteMain(keepPosition ...bool) {
 		}
 		app.mainView.SetCursor(cx, cy)
 		app.mainView.SetOrigin(ox, oy)
-		app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, runs)
+		app.mainView.Subtitle = fmt.Sprintf("%d/%d", cy+oy+1, app.showRuns)
 		return nil
 	})
 }
@@ -189,6 +189,8 @@ func (app *App) refreshWorkflows() error {
 			run:    workflowRun,
 		})
 	}
+	// update show runs
+	app.showRuns = len(app.runs)
 	return nil
 }
 
