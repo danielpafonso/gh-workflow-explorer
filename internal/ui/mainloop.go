@@ -90,7 +90,7 @@ func maxInts(x, y int) int {
 
 func (app *App) WriteRepoOnwer() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
-		fmt.Fprintf(app.repoView, " Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
+		fmt.Fprintf(app.repoView, " Owner: %s\n\n Repo: %s", app.api.Owner, app.api.Repo)
 		return nil
 	})
 }
@@ -98,7 +98,7 @@ func (app *App) WriteRepoOnwer() {
 func (app *App) WriteFilter() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		// change this writing
-		fmt.Fprintf(app.filterListView, "Owner: %s\n\n Repo:%s", app.api.Owner, app.api.Repo)
+		fmt.Fprintf(app.filterListView, "Owner: %s\n\n Repo: %s", app.api.Owner, app.api.Repo)
 		return nil
 	})
 }

@@ -2,12 +2,17 @@
 
 A graphical Terminal application that enables the listing, filtering and deletion of Github's Repos Workflow runs.
 
+![Main Window](docs/imgs/01.png)
+
+[Click for more sreenshots](docs/screenshots.md)
+
 ## Usage
 
 ```
 Usage of shipper: gh-we [-c | --config <path>] [-a | --auth <string>]
         -c, --config  path to configuation json file
         -a, --auth    github Token used for authentication. Overwrites json configurations.
+	-r, --repo    github repo to view. Overwrites json configurations.
         -h, --help    display this help message
 ```
 
@@ -18,16 +23,16 @@ These json have the following structure:
 
 ```json
 {
-	"owner": "OWNER",
-	"name": "REPO",
-	"auth": "token",
-	"githubApiVersion": "2022-11-28"
+  "owner": "OWNER",
+  "name": "REPO",
+  "auth": "token",
+  "githubApiVersion": "2022-11-28"
 }
 ```
 
-| Field | Description |
-| --- | --- |
-| owner | Repo's owner. Either is a user or organization |
-| name | Repo's name |
-| auth | Token to use as the bearer authentication |
-| githubApiVersion | GitHub API Versions |
+| Field            | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| owner            | Repo's owner. Either is a user or organization |
+| name             | Repo's name                                    |
+| auth             | Token to use as the bearer authentication      |
+| githubApiVersion | GitHub API Versions                            |
