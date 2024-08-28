@@ -22,7 +22,7 @@ func main() {
 	flag.StringVar(&repoOverwrite, "repo", "", "Repo name to view, overwrites json configuration")
 	flag.StringVar(&repoOverwrite, "r", "", "")
 	flag.Usage = func() {
-		fmt.Print(`Usage of shipper: gh-we [-c | --config <path>] [-a | --auth <string>]
+		fmt.Print(`Usage of shipper: gh-we [-c | --config <path>] [-a | --auth <string>] [-r | --repo <path>]
 	-c, --config  path to configuation json file
 	-a, --auth    github Token used for authentication. Overwrites json configurations.
 	-r, --repo    github repo to view. Overwrites json configurations.
