@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/awesome-gocui/gocui"
 )
@@ -104,6 +105,7 @@ func (app *App) filterApply(g *gocui.Gui, v *gocui.View) error {
 	app.filter.fields.Name = app.filter.inputs[0].Buffer()
 	app.filter.fields.Commit = app.filter.inputs[1].Buffer()
 	app.filter.fields.Status = app.filter.inputs[2].Buffer()
+	app.filter.fields.Older = app.filter.inputs[3].Buffer()
 
 	// update runs list
 	app.filterRuns()
@@ -116,10 +118,13 @@ func (app *App) filterApply(g *gocui.Gui, v *gocui.View) error {
 // func (app *App) filterRuns(g *gocui.Gui, v *gocui.View) error {
 func (app *App) filterRuns() {
 	app.showRuns = 0
+	delta, _ := time.ParseDuration(app.filter.fields.Older)
+	limit := time.Now().UTC().Add(-1 * delta)
 	for i, workflow := range app.runs {
 		filter := strings.Contains(workflow.run.Name, app.filter.fields.Name) &&
 			strings.Contains(workflow.run.Title, app.filter.fields.Commit) &&
-			strings.Contains(workflow.run.Conclusion, app.filter.fields.Status)
+			strings.Contains(workflow.run.Conclusion, app.filter.fields.Status) &&
+			workflow.run.Updated.Before(limit)
 
 		// apply filter
 		app.runs[i].show = filter
@@ -143,6 +148,7 @@ func (app *App) refreshMain(g *gocui.Gui, v *gocui.View) error {
 		app.filter.fields.Name = ""
 		app.filter.fields.Commit = ""
 		app.filter.fields.Status = ""
+		app.filter.fields.Older = ""
 		// get data from api
 		app.refreshWorkflows()
 		// update main
@@ -175,6 +181,7 @@ func (app *App) deleteRuns(g *gocui.Gui, v *gocui.View) error {
 		}
 		// update Main view
 		app.WriteMain()
+		app.statusView.Subtitle = ""
 	}()
 	return nil
 }
@@ -228,7 +235,7 @@ func (app *App) keybindings(g *gocui.Gui) error {
 
 	//   filter Window
 	// Add keybings to all inputs
-	for _, view := range []string{"filter-name", "filter-commit", "filter-status"} {
+	for _, view := range []string{"filter-name", "filter-commit", "filter-status", "filter-older"} {
 		if err := g.SetKeybinding(view, gocui.KeyTab, gocui.ModNone, app.filterFocus); err != nil {
 			return err
 		}

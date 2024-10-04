@@ -13,6 +13,7 @@ func main() {
 	// comand line arguments
 	var configFilepath string
 	var authOverwrite string
+	var ownerOverwrite string
 	var repoOverwrite string
 
 	flag.StringVar(&configFilepath, "config", "config.json", "Path to configuration json file")
@@ -21,11 +22,14 @@ func main() {
 	flag.StringVar(&authOverwrite, "a", "", "")
 	flag.StringVar(&repoOverwrite, "repo", "", "Repo name to view, overwrites json configuration")
 	flag.StringVar(&repoOverwrite, "r", "", "")
+	flag.StringVar(&ownerOverwrite, "owner", "", "Owner of repo, overwrites json configuration")
+	flag.StringVar(&ownerOverwrite, "o", "", "")
 	flag.Usage = func() {
 		fmt.Print(`Usage of shipper: gh-we [-c | --config <path>] [-a | --auth <string>] [-r | --repo <path>]
 	-c, --config  path to configuation json file
 	-a, --auth    github Token used for authentication. Overwrites json configurations.
 	-r, --repo    github repo to view. Overwrites json configurations.
+	-o, --owner   owner of github repo. Overwrites json configurations.
 	-h, --help    display this help message
 `)
 	}
@@ -41,6 +45,9 @@ func main() {
 	}
 	if repoOverwrite != "" {
 		configs.Name = repoOverwrite
+	}
+	if ownerOverwrite != "" {
+		configs.Owner = ownerOverwrite
 	}
 	api := internal.GithubApi{
 		Owner:   configs.Owner,

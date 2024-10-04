@@ -146,10 +146,11 @@ func (app *App) Layout(*gocui.Gui) error {
 	} else {
 		view.Clear()
 		view.WriteString(fmt.Sprintf(
-			"Name: %s\n\nCommit: %s\n\nStatus: %s",
+			"Name: %s\n\nCommit: %s\n\nStatus: %s\n\nOlder than: %s",
 			app.filter.fields.Name,
 			app.filter.fields.Commit,
 			app.filter.fields.Status,
+			app.filter.fields.Older,
 		))
 	}
 	// columns name view
@@ -192,7 +193,7 @@ func (app *App) Layout(*gocui.Gui) error {
 	app.filter.pos.X0 = maxX/2 - 20
 	app.filter.pos.Y0 = maxY/2 - 4
 	app.filter.pos.X1 = app.filter.pos.X0 + 40
-	app.filter.pos.Y1 = app.filter.pos.Y0 + 8
+	app.filter.pos.Y1 = app.filter.pos.Y0 + 10
 
 	if view, err := app.gui.SetView("filter", app.filter.pos.X0, app.filter.pos.Y0, app.filter.pos.X1, app.filter.pos.Y1, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
@@ -202,12 +203,12 @@ func (app *App) Layout(*gocui.Gui) error {
 		// view.FrameColor = gocui.ColorMagenta
 		view.Visible = app.filter.visible
 		app.filter.view = view
-		view.WriteString("Name:\n\nCommit:\n\nStatus:\n\n\t<enter> confirm\t<Esc> cancel")
+		view.WriteString("Name:\n\nCommit:\n\nStatus:\n\nOlder than:\n\n\t<enter> confirm\t<Esc> cancel")
 	} else {
 		view.Visible = app.filter.visible
 	}
 
-	if view, err := app.gui.SetView("filter-name", app.filter.pos.X0+9, app.filter.pos.Y0, app.filter.pos.X1-1, app.filter.pos.Y0+2, 0); err != nil {
+	if view, err := app.gui.SetView("filter-name", app.filter.pos.X0+12, app.filter.pos.Y0, app.filter.pos.X1-1, app.filter.pos.Y0+2, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
@@ -218,7 +219,7 @@ func (app *App) Layout(*gocui.Gui) error {
 	} else {
 		view.Visible = app.filter.visible
 	}
-	if view, err := app.gui.SetView("filter-commit", app.filter.pos.X0+9, app.filter.pos.Y0+2, app.filter.pos.X1-1, app.filter.pos.Y0+4, 0); err != nil {
+	if view, err := app.gui.SetView("filter-commit", app.filter.pos.X0+12, app.filter.pos.Y0+2, app.filter.pos.X1-1, app.filter.pos.Y0+4, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}
@@ -229,7 +230,18 @@ func (app *App) Layout(*gocui.Gui) error {
 	} else {
 		view.Visible = app.filter.visible
 	}
-	if view, err := app.gui.SetView("filter-status", app.filter.pos.X0+9, app.filter.pos.Y0+4, app.filter.pos.X1-1, app.filter.pos.Y0+6, 0); err != nil {
+	if view, err := app.gui.SetView("filter-status", app.filter.pos.X0+12, app.filter.pos.Y0+4, app.filter.pos.X1-1, app.filter.pos.Y0+6, 0); err != nil {
+		if !errors.Is(err, gocui.ErrUnknownView) {
+			return err
+		}
+		view.Visible = app.filter.visible
+		view.Frame = false
+		view.Editable = true
+		app.filter.inputs = append(app.filter.inputs, view)
+	} else {
+		view.Visible = app.filter.visible
+	}
+	if view, err := app.gui.SetView("filter-older", app.filter.pos.X0+12, app.filter.pos.Y0+6, app.filter.pos.X1-1, app.filter.pos.Y0+8, 0); err != nil {
 		if !errors.Is(err, gocui.ErrUnknownView) {
 			return err
 		}

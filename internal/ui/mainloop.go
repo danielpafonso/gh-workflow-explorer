@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github-workflow-explorer/internal"
@@ -36,6 +37,7 @@ type FilterFields struct {
 	Name   string
 	Commit string
 	Status string
+	Older  string
 }
 type filterData struct {
 	view    *gocui.View
@@ -70,6 +72,7 @@ func NewAppUI(config internal.GithubApi) *App {
 			{0, "Workflow Name", 13},
 			{1, "Commit Name", 11},
 			{2, "Status", 6},
+			{3, "Updated", 7},
 		},
 		statusVisible: true,
 		status:        viewCoord{X1: 2, Y1: 2},
@@ -96,14 +99,6 @@ func (app *App) WriteRepoOnwer() {
 	})
 }
 
-func (app *App) WriteFilter() {
-	app.gui.UpdateAsync(func(g *gocui.Gui) error {
-		// change this writing
-		fmt.Fprintf(app.filterListView, "Owner: %s\n\n Repo: %s", app.api.Owner, app.api.Repo)
-		return nil
-	})
-}
-
 func (app *App) WriteColumns() {
 	app.gui.UpdateAsync(func(g *gocui.Gui) error {
 		// clear view
@@ -113,12 +108,14 @@ func (app *App) WriteColumns() {
 		app.columnsView.SetWritePos(7, 0)
 		fmt.Fprintf(
 			app.columnsView,
-			"%s%s   %s%s   %s\n",
+			"%s%s   %s%s   %s%s  %s\n",
 			app.columns[0].text,
 			strings.Repeat(" ", app.columns[0].spaces-len(app.columns[0].text)),
 			app.columns[1].text,
 			strings.Repeat(" ", app.columns[1].spaces-len(app.columns[1].text)),
 			app.columns[2].text,
+			strings.Repeat(" ", app.columns[2].spaces-len(app.columns[2].text)),
+			app.columns[3].text,
 		)
 		return nil
 	})
@@ -155,13 +152,16 @@ func (app *App) WriteMain(keepPosition ...bool) {
 				}
 				fmt.Fprintf(
 					app.mainView,
-					"  [%s] %s%s   %s%s   %s\n",
+					"  [%s] %s%s   %s%s   %s%s   %s\n",
 					toogle,
 					run.run.Name,
 					strings.Repeat(" ", app.columns[0].spaces-utf8.RuneCountInString(run.run.Name)),
 					run.run.Title,
 					strings.Repeat(" ", app.columns[1].spaces-utf8.RuneCountInString(run.run.Title)),
 					run.run.Conclusion,
+					//
+					strings.Repeat(" ", app.columns[2].spaces-utf8.RuneCountInString(run.run.Conclusion)),
+					run.run.Updated.Format(time.RFC3339),
 				)
 			}
 		}
@@ -217,7 +217,6 @@ func (app *App) StartUI() error {
 
 	// write dynamic text
 	app.WriteRepoOnwer()
-	// app.WriteFilter()
 	app.StatusView("Requesting workflows\nPlease Wait...")
 
 	go func() {

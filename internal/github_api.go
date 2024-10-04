@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 // GithubApi stores values used when calling Github's APIs
@@ -23,6 +24,7 @@ type WorkflowRun struct {
 	Branch     string
 	Status     string
 	Conclusion string
+	Updated    time.Time
 	Actor      string
 }
 
@@ -36,6 +38,7 @@ type workflowResponse struct {
 		Title      string `json:"display_title"`
 		Status     string `json:"status"`
 		Conclusion string `json:"conclusion"`
+		Updated    string `json:"updated_at"`
 		Actor      struct {
 			Name string `json:"login"`
 		} `json:"actor"`
@@ -108,6 +111,7 @@ func (gh *GithubApi) ListWorkflows() ([]WorkflowRun, error) {
 		}
 		// process/filter response
 		for _, run := range response.Runs {
+			updated, _ := time.Parse(time.RFC3339, run.Updated)
 			runs = append(runs, WorkflowRun{
 				ID:         run.ID,
 				Title:      run.Title,
@@ -115,6 +119,7 @@ func (gh *GithubApi) ListWorkflows() ([]WorkflowRun, error) {
 				Branch:     run.Branch,
 				Status:     run.Status,
 				Conclusion: run.Conclusion,
+				Updated:    updated,
 				Actor:      run.Actor.Name,
 			})
 		}
