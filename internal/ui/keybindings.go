@@ -150,10 +150,14 @@ func (app *App) refreshMain(g *gocui.Gui, v *gocui.View) error {
 		app.filter.fields.Status = ""
 		app.filter.fields.Older = ""
 		// get data from api
-		app.refreshWorkflows()
-		// update main
-		app.WriteMain()
-		app.WriteColumns()
+		err := app.refreshWorkflows()
+		if err != nil {
+			app.StatusView(fmt.Sprintf("Error when requesting:\n%s", err))
+		} else {
+			// update main
+			app.WriteMain()
+			app.WriteColumns()
+		}
 	}()
 	return nil
 }

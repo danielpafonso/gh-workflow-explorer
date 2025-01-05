@@ -221,10 +221,13 @@ func (app *App) StartUI() error {
 
 	go func() {
 		// get workflow list
-		app.refreshWorkflows()
-
-		app.WriteMain()
-		app.WriteColumns()
+		err := app.refreshWorkflows()
+		if err != nil {
+			app.StatusView(fmt.Sprintf("Error when requesting:\n%s", err))
+		} else {
+			app.WriteMain()
+			app.WriteColumns()
+		}
 	}()
 
 	// enter UI mainloop
